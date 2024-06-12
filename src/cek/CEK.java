@@ -54,6 +54,7 @@ public class CEK {
       return switch (this.control) {
         case IntConst ic -> this.invokeContinuation(new NumValue(ic.getVALUE()));
         case BoolConst bc -> this.invokeContinuation(new BoolValue(bc.getVALUE()));
+        case AtomConst ac -> this.invokeContinuation(new AtomValue(ac.getVALUE()));
         case EmptyConsConst ec -> this.invokeContinuation(new EmptyConsValue());
         case Var v -> this.invokeContinuation(this.env.lookup(v));
         case Lambda lam -> this.invokeContinuation(new Closure(lam, this.env));
@@ -84,6 +85,8 @@ public class CEK {
           case "cdr" -> ((ConsValue) value).getCDR();
           case "not" -> new BoolValue(!((BoolValue) value).getVALUE());
           case "null?" -> new BoolValue(value instanceof EmptyConsValue);
+          case "number?" -> new BoolValue(value instanceof NumValue);
+          case "boolean?" -> new BoolValue(value instanceof BoolValue);
           default -> throw new IllegalStateException("ERR invalid op " + unaryOpKont.op());
         };
         yield new CEK(null, null, unaryOpKont.kont(), null, result);

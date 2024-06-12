@@ -139,5 +139,67 @@ class CEKTester {
      */
     IExpr e14 = new UnaryOp("cdr", new BinOp("cons", new IntConst(100), new BinOp("*", new IntConst(2), new IntConst(3))));
     assertEquals(new NumValue(6), CEK.blankCEK(e14).run());
+
+    IExpr e16 = new BinOp("eq?",
+            new UnaryOp("car", new BinOp("cons", new AtomConst("+"), new EmptyConsConst())),
+            new AtomConst("+"));
+    assertEquals(new BoolValue(true), CEK.blankCEK(e16).run());
+
+    /*
+    (let ([env '()])
+  (let ([cadr (λ (p) (car (cdr p)))])
+    (let ([caddr (λ (p) (car (cdr (cdr p))))])
+      (let ([lookup (λ (f)
+                      (λ (v)
+                        (λ (env)
+                          (if (null? env)
+                              (error "bad var ~a\n" v)
+                              (let ([pair (car env)])
+                                (if (eq? (car pair) v)
+                                    (cdr pair)
+                                    (((f f) v) env)))))))])
+        (let ([plus? (λ (exp)
+                       (eq? (car exp) '+))])
+          (let ([eval (λ (f)
+                        (λ (exp)
+                          (λ (env)
+                            (if (number? exp)
+                                exp
+                                (if (plus? exp)
+                                    (let ([fst (cadr exp)])
+                                      (let ([snd (caddr exp)])
+                                        (+ (((f f) fst) env)
+                                           (((f f) snd) env))))
+                                    (error "bad exp"))))))])
+            (((eval eval) (cons '+ (cons 1 (cons 2 empty)))) env)))))))
+     */
+    IExpr e15 = new Let("env", new EmptyConsConst(),
+            new Let("cadr", new Lambda("p", new UnaryOp("car", new UnaryOp("cdr", new Var("p")))),
+                    new Let("caddr", new Lambda("p", new UnaryOp("car", new UnaryOp("cdr", new UnaryOp("cdr", new Var("p"))))),
+                            new Let("lookup", new Lambda("f",
+                                    new Lambda("v",
+                                            new Lambda("env",
+                                                    new If(new UnaryOp("null?", new Var("env")),
+                                                            new IntConst(0),
+                                                            new Let("pair", new UnaryOp("car", new Var("env")),
+                                                                    new If(new BinOp("eq?", new UnaryOp("car", new Var("pair")), new Var("v")),
+                                                                            new UnaryOp("cdr", new Var("pair")),
+                                                                            new App(new App(new App(new Var("f"), new Var("f")), new Var("v")), new UnaryOp("cdr", new Var("env"))))))))),
+                                    new Let("plus?", new Lambda("exp", new BinOp("eq?", new UnaryOp("car", new Var("exp")), new AtomConst("+"))),
+                                            new Let("eval", new Lambda("f",
+                                                    new Lambda("exp",
+                                                            new Lambda("env",
+                                                                    new If(new UnaryOp("number?", new Var("exp")),
+                                                                            new Var("exp"),
+                                                                            new If(new App(new Var("plus?"), new Var("exp")),
+                                                                                   new Let("fst", new App(new Var("cadr"), new Var("exp")),
+                                                                                            new Let("snd", new App(new Var("caddr"), new Var("exp")),
+                                                                                                    new BinOp("+",
+                                                                                                            new App(new App(new App(new Var("f"), new Var("f")), new Var("fst")), new Var("env")),
+                                                                                                            new App(new App(new App(new Var("f"), new Var("f")), new Var("snd")), new Var("env"))))),
+                                                                                    new IntConst(0)))))),
+                                                    new App(new App(new App(new Var("eval"), new Var("eval")),
+                                                                    new BinOp("cons", new AtomConst("+"), new BinOp("cons", new IntConst(1), new BinOp("cons", new IntConst(2), new EmptyConsConst())))), new Var("env"))))))));
+    assertEquals(new NumValue(3), CEK.blankCEK(e15).run());
   }
 }
