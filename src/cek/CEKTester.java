@@ -1,6 +1,7 @@
 package cek;
 
 import exprs.*;
+import values.BoolValue;
 import values.NumValue;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -52,6 +53,14 @@ class CEKTester {
             new App(new App(new Var("f"), new Var("f")), new IntConst(5)));
     assertEquals(new NumValue(120), CEK.blankCEK(e6).run());
 
+    /*
+    (let ([f (λ (f)
+           (λ (n)
+             (if (= n 0)
+                 1
+                 (* n ((f f) (- n 1))))))])
+      ((f f) 500000))
+     */
     IExpr e7 = new Let("f",
             new Lambda("f",
                     new Lambda("n",
@@ -59,7 +68,77 @@ class CEKTester {
                                     new IntConst(1),
                                     new BinOp("*", new Var("n"), new App(new App(new Var("f"), new Var("f")), new BinOp("-", new Var("n"), new IntConst(1))))))),
             new App(new App(new Var("f"), new Var("f")), new IntConst(500000)));
-    CEK.blankCEK(e7).run();
-//    assertEquals(new NumValue("120"), CEK.blankCEK(e7).run());
+
+    /*
+    (car (cons 1 2))
+     */
+    IExpr e8 = new UnaryOp("car", new BinOp("cons", new IntConst(1), new IntConst(2)));
+    assertEquals(new NumValue(1), CEK.blankCEK(e8).run());
+
+    /*
+    (null? (cons 1 ()))
+     */
+    IExpr e9 = new UnaryOp("null?", new BinOp("cons", new IntConst(1), new EmptyConsConst()));
+    assertEquals(new BoolValue(false), CEK.blankCEK(e9).run());
+
+    /*
+    (null? ())
+     */
+    IExpr e10 = new UnaryOp("null?", new EmptyConsConst());
+    assertEquals(new BoolValue(true), CEK.blankCEK(e10).run());
+
+    /*
+    (let ([f (λ (f)
+           (λ (l)
+             (if (null? l)
+                 0
+                 (+ 1 ((f f) (cdr l))))))])
+        ((f f) (cons 100 (cons 200 (cons 230 (cons 400 (cons 2000 empty)))))))
+     */
+    IExpr e11 = new Let("f",
+            new Lambda("f",
+                    new Lambda("l",
+                            new If(new UnaryOp("null?", new Var("l")),
+                                    new IntConst(0),
+                                    new BinOp("+", new IntConst(1), new App(new App(new Var("f"), new Var("f")), new UnaryOp("cdr", new Var("l"))))))),
+            new App(new App(new Var("f"), new Var("f")),
+                    new BinOp("cons", new IntConst(100),
+                            new BinOp("cons", new IntConst(200),
+                                    new BinOp("cons", new IntConst(230),
+                                            new BinOp("cons", new IntConst(400),
+                                                    new BinOp("cons", new IntConst(2000), new EmptyConsConst())))))));
+    assertEquals(new NumValue(5), CEK.blankCEK(e11).run());
+
+    /*
+    (let ([f (λ (f)
+           (λ (n)
+             (if (<= n 1)
+                 n
+                 (+ ((f f) (- n 1))
+                    ((f f) (- n 2))))))])
+      ((f f) 10))
+     */
+    IExpr e12 = new Let("f",
+            new Lambda("f",
+                    new Lambda("n",
+                            new If(new BinOp("<=", new Var("n"), new IntConst(1)),
+                                    new Var("n"),
+                                    new BinOp("+",
+                                            new App(new App(new Var("f"), new Var("f")), new BinOp("-", new Var("n"), new IntConst(1))),
+                                            new App(new App(new Var("f"), new Var("f")), new BinOp("-", new Var("n"), new IntConst(2))))))),
+            new App(new App(new Var("f"), new Var("f")), new IntConst(10)));
+    assertEquals(new NumValue(55), CEK.blankCEK(e12).run());
+
+    /*
+    (car (cons (+ 1 2) 3))
+     */
+    IExpr e13 = new UnaryOp("car", new BinOp("cons", new BinOp("+", new IntConst(1), new IntConst(2)), new IntConst(3)));
+    assertEquals(new NumValue(3), CEK.blankCEK(e13).run());
+
+    /*
+    (cdr (cons 100 (* 2 3)))
+     */
+    IExpr e14 = new UnaryOp("cdr", new BinOp("cons", new IntConst(100), new BinOp("*", new IntConst(2), new IntConst(3))));
+    assertEquals(new NumValue(6), CEK.blankCEK(e14).run());
   }
 }

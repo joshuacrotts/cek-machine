@@ -2,18 +2,18 @@ package exprs;
 
 public abstract class Const<T> implements IExpr {
 
-  private final T value;
+  private final T VALUE;
 
   public Const(T v) {
-    this.value = v;
+    this.VALUE = v;
   }
 
-  public T getValue() {
-    return this.value;
+  public T getVALUE() {
+    return this.VALUE;
   }
 
   @Override
   public String toString() {
-    return value.toString();
+    return VALUE.toString();
   }
 }

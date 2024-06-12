@@ -14,6 +14,6 @@ public class NumValue extends Value<BigInteger> {
 
   @Override
   public String toString() {
-    return this.getValue().toString();
+    return this.getVALUE().toString();
   }
 }

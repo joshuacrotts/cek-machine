@@ -1,4 +1,3 @@
 package continuations;
 
-public class HaltKont implements IContinuation {
-}
+public class HaltKont implements IContinuation { }

@@ -8,6 +8,6 @@ public class BoolValue extends Value<Boolean> {
 
   @Override
   public String toString() {
-    return this.getValue().toString();
+    return this.getVALUE().toString();
   }
 }
