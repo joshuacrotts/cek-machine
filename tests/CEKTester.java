@@ -1,5 +1,4 @@
-package cek;
-
+import cek.CEK;
 import exprs.*;
 import values.BoolValue;
 import values.NumValue;
